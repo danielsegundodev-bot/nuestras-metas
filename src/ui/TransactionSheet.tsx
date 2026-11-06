@@ -18,13 +18,7 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
 }
 
 /** Detail of one movement, with edit / delete for the person's own entries. */
-export function TransactionSheet({
-  id,
-  back,
-}: {
-  id: string
-  back?: Exclude<SheetState, null>
-}) {
+export function TransactionSheet({ id, back }: { id: string; back?: Exclude<SheetState, null> }) {
   const { contributions, goals, profiles, session } = useData()
   const { closeSheet, openSheet } = useUi()
   const remove = useRemoveContribution()

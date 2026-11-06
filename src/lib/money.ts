@@ -65,8 +65,7 @@ export function formatMoneyAuto(
 ): string {
   const abs = Math.abs(value)
   const keepCents = currency === 'USD' && opts.entry === true
-  const decimals =
-    abs >= 1_000 && !keepCents ? 0 : Number.isInteger(round2(value)) ? 0 : 2
+  const decimals = abs >= 1_000 && !keepCents ? 0 : Number.isInteger(round2(value)) ? 0 : 2
   return formatMoney(value, currency, { decimals, signed: opts.signed })
 }
 
