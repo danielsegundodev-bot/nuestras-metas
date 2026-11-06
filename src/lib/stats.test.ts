@@ -179,3 +179,14 @@ describe('projectCompletion', () => {
     expect(projectCompletion(data, 100_000, new Date(2026, 2, 10), 'casa')!.monthsLeft).toBe(7)
   })
 })
+
+import { displayPct, progressRatio } from './stats'
+
+describe('overfunded goals', () => {
+  it('keeps the real ratio above 1 and caps the label at 999%', () => {
+    expect(progressRatio(250, 100)).toBe(2.5)
+    expect(displayPct(250, 100)).toBe(250)
+    expect(displayPct(1e9, 100)).toBe(999)
+    expect(displayPct(50, 0)).toBe(0)
+  })
+})

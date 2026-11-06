@@ -30,11 +30,23 @@ export function progress(saved: number, target: number): number {
 export const progressPct = (saved: number, target: number): number =>
   Math.round(progress(saved, target) * 100)
 
+/** Unclamped saved / target ratio (> 1 when overfunded). */
+export function progressRatio(saved: number, target: number): number {
+  if (!(target > 0)) return 0
+  return Math.max(0, saved / target)
+}
+
+/** Percentage for display: real value above 100 ("250%"), capped at "999%" so it can't overflow. */
+export const displayPct = (saved: number, target: number): number =>
+  Math.min(999, Math.round(progressRatio(saved, target) * 100))
+
 export interface GoalSummary {
   goal: Goal
   saved: number
   /** [0, 1] */
   progress: number
+  /** Unclamped; > 1 when the goal is overfunded. */
+  ratio: number
 }
 
 /** Active goals sorted by `sort`, with saved amounts and progress. */
@@ -48,7 +60,12 @@ export function summarizeGoals(
     .sort((a, b) => a.sort - b.sort || a.created_at.localeCompare(b.created_at))
     .map((goal) => {
       const s = saved[goal.id] ?? 0
-      return { goal, saved: s, progress: progress(s, goal.target_mxn) }
+      return {
+        goal,
+        saved: s,
+        progress: progress(s, goal.target_mxn),
+        ratio: progressRatio(s, goal.target_mxn),
+      }
     })
 }
 

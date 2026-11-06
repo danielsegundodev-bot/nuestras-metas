@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from 'react'
 import { useData } from '../data/store'
-import { formatMoney, formatMoneyCompact, fromMXN } from '../lib/money'
+import { formatMoneyAuto, formatMoneyCompact, fromMXN } from '../lib/money'
 import type { Contribution, Currency } from '../lib/types'
 
 export type SheetState =
@@ -110,7 +110,7 @@ export function useMoney() {
       /** MXN amount → display-currency number. */
       conv: (mxn: number) => fromMXN(mxn, cur, rate),
       fmt: (mxn: number, signed = false) =>
-        formatMoney(fromMXN(mxn, cur, rate), cur, { decimals: 0, signed }),
+        formatMoneyAuto(fromMXN(mxn, cur, rate), cur, { signed }),
       compact: (mxn: number) => formatMoneyCompact(fromMXN(mxn, cur, rate), cur),
     }),
     [cur, rate],

@@ -3,7 +3,7 @@ import { es } from 'date-fns/locale'
 import { useState } from 'react'
 import { useData } from '../data/store'
 import { parseLocal } from '../lib/dates'
-import { formatMoney } from '../lib/money'
+import { formatMoneyAuto } from '../lib/money'
 import { personColor } from '../lib/people'
 import type { Contribution, Goal } from '../lib/types'
 import { Avatar, Button, Group } from './primitives'
@@ -94,11 +94,11 @@ export function ActivityList({
               </div>
               <div className="shrink-0 text-right">
                 <p className="num text-body font-semibold">
-                  {formatMoney(c.amount, c.currency, { signed: true })}
+                  {formatMoneyAuto(c.amount, c.currency, { signed: true, entry: true })}
                 </p>
                 {c.currency === 'USD' && (
                   <p className="num text-caption text-ink-2">
-                    ≈ {formatMoney(c.amount_mxn, 'MXN', { decimals: 0 })}
+                    ≈ {formatMoneyAuto(c.amount_mxn, 'MXN')}
                   </p>
                 )}
               </div>

@@ -1,7 +1,7 @@
-import { useMemo, useState, type FormEvent } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
 import { useData } from '../data/store'
 import { toISODate } from '../lib/dates'
-import { formatMoney, toMXN } from '../lib/money'
+import { formatAmountInput, formatMoneyAuto, toMXN } from '../lib/money'
 import { goalColor, parseAmount } from '../lib/rings'
 import type { Contribution, Currency } from '../lib/types'
 import { Button, cx, Field, inputClass, Segmented } from './primitives'
@@ -20,7 +20,11 @@ export function AddSheet({ goalId, editing }: { goalId?: string; editing?: Contr
     [goals, editing],
   )
   const [kind, setKind] = useState<Kind>(editing && editing.amount < 0 ? 'withdrawal' : 'deposit')
-  const [amountText, setAmountText] = useState(editing ? String(Math.abs(editing.amount)) : '')
+  const [amountText, setAmountText] = useState(
+    editing ? formatAmountInput(String(Math.abs(editing.amount))).text : '',
+  )
+  const amountRef = useRef<HTMLInputElement>(null)
+  const caretRef = useRef<number | null>(null)
   const [currency, setCurrency] = useState<Currency>(editing?.currency ?? me?.currency ?? 'MXN')
   const [pickedGoal, setPickedGoal] = useState<string | null>(
     editing?.goal_id ?? goalId ?? choices[0]?.id ?? null,
@@ -30,6 +34,30 @@ export function AddSheet({ goalId, editing }: { goalId?: string; editing?: Contr
   const [rateText, setRateText] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Re-place the caret after live thousands separators change the text length.
+  useLayoutEffect(() => {
+    if (caretRef.current !== null && amountRef.current) {
+      amountRef.current.setSelectionRange(caretRef.current, caretRef.current)
+      caretRef.current = null
+    }
+  }, [amountText])
+
+  function onAmountChange(e: ChangeEvent<HTMLInputElement>) {
+    let raw = e.target.value
+    let caret = e.target.selectionStart ?? raw.length
+    // Some keyboards (es-ES) type "," as the decimal mark.
+    if ((e.nativeEvent as InputEvent).data === ',' && !raw.includes('.')) {
+      raw = `${raw.slice(0, caret - 1)}.${raw.slice(caret)}`
+    }
+    const f = formatAmountInput(raw, caret)
+    caret = f.caret
+    caretRef.current = caret
+    setAmountText(f.text)
+  }
+
+  // Long numbers shrink to stay inside the card instead of scrolling sideways.
+  const amountFont = Math.max(22, Math.min(48, Math.floor(430 / Math.max(amountText.length, 1))))
 
   const amount = parseAmount(amountText)
   // Editing keeps the rate of the day the entry was made; new entries use today's rate.
@@ -104,18 +132,20 @@ export function AddSheet({ goalId, editing }: { goalId?: string; editing?: Contr
           </label>
           <input
             id="amount"
+            ref={amountRef}
             inputMode="decimal"
             autoComplete="off"
             autoFocus={!editing}
             placeholder="0"
             value={amountText}
-            onChange={(e) => setAmountText(e.target.value)}
+            onChange={onAmountChange}
+            style={{ fontSize: amountFont }}
             aria-invalid={amountText !== '' && amount === null}
-            className="num block w-full bg-transparent text-[48px] font-bold leading-tight tracking-[-0.02em] text-ink outline-none placeholder:text-ink-2/50"
+            className="num block w-full min-w-0 bg-transparent font-bold leading-tight tracking-[-0.02em] text-ink outline-none placeholder:text-ink-2/50"
           />
           <p className="num mt-0.5 min-h-5 text-footnote text-ink-2" aria-live="polite">
             {mxnEquivalent !== null
-              ? `Son ${formatMoney(mxnEquivalent, 'MXN')} a ${rate?.toFixed(2)} pesos por dólar`
+              ? `Son ${formatMoneyAuto(mxnEquivalent, 'MXN')} a ${rate?.toFixed(2)} pesos por dólar`
               : amountText !== '' && amount === null
                 ? 'Escribe solo números, por ejemplo 1500 o 1,500.50'
                 : ''}
