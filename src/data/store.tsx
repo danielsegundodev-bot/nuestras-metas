@@ -46,7 +46,7 @@ export interface DataState {
 }
 
 export interface DataActions {
-  signIn(email: string): Promise<void>
+  signIn(email: string, password: string): Promise<void>
   signOut(): Promise<void>
   /** Optimistic: the row appears immediately and is rolled back if the save fails. */
   addContribution(c: NewContribution): Promise<Contribution>
@@ -195,7 +195,7 @@ export function DataProvider({
 
   const actions = useMemo<DataActions>(
     () => ({
-      signIn: (email) => source.signInWithEmail(email),
+      signIn: (email, password) => source.signInWithPassword(email, password),
       signOut: () => source.signOut(),
 
       async addContribution(c) {

@@ -34,7 +34,7 @@ export function LoadingScreen() {
 export function LoginScreen() {
   const { signIn } = useData()
   const [email, setEmail] = useState('')
-  const [sent, setSent] = useState(false)
+  const [password, setPassword] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -43,35 +43,19 @@ export function LoginScreen() {
     setBusy(true)
     setError(null)
     try {
-      await signIn(email.trim())
-      setSent(true)
+      await signIn(email.trim(), password)
     } catch (err) {
       const msg = err instanceof Error ? err.message.toLowerCase() : ''
       setError(
-        msg.includes('rate limit')
-          ? 'Ya se enviaron varios enlaces hace poco. Espera una hora y vuelve a intentarlo, o usa el último enlace que te llegó.'
-          : 'No se pudo enviar el enlace. Revisa el correo e intenta de nuevo.',
+        msg.includes('invalid login credentials')
+          ? 'El correo o la contraseña no coinciden.'
+          : msg.includes('rate limit')
+            ? 'Demasiados intentos seguidos. Espera unos minutos y vuelve a intentarlo.'
+            : 'No se pudo entrar. Revisa tu conexión e intenta de nuevo.',
       )
     } finally {
       setBusy(false)
     }
-  }
-
-  if (sent) {
-    return (
-      <Centered>
-        <div>
-          <h1 className="text-title-2 font-bold tracking-[-0.02em]">Revisa tu correo</h1>
-          <p className="mt-2 text-body text-ink-2">
-            Enviamos un enlace a <span className="font-semibold text-ink">{email}</span>. Ábrelo en
-            este dispositivo para entrar.
-          </p>
-        </div>
-        <Button variant="plain" onClick={() => setSent(false)}>
-          Usar otro correo
-        </Button>
-      </Centered>
-    )
   }
 
   return (
@@ -84,17 +68,31 @@ export function LoginScreen() {
       </div>
       <form onSubmit={onSubmit} className="flex w-full flex-col gap-3 text-left">
         <label className="sr-only" htmlFor="email">
-          Correo electrónico
+          Correo
         </label>
         <input
           id="email"
           type="email"
           required
-          autoComplete="email"
+          autoComplete="username"
           inputMode="email"
+          autoCapitalize="none"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="tu@correo.com"
+          placeholder="Correo"
+          className={inputClass}
+        />
+        <label className="sr-only" htmlFor="password">
+          Contraseña
+        </label>
+        <input
+          id="password"
+          type="password"
+          required
+          autoComplete="current-password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Contraseña"
           className={inputClass}
         />
         {error && (
@@ -102,8 +100,8 @@ export function LoginScreen() {
             {error}
           </p>
         )}
-        <Button type="submit" disabled={busy || !email.trim()} className="w-full">
-          {busy ? 'Enviando…' : 'Enviar enlace'}
+        <Button type="submit" disabled={busy || !email.trim() || !password} className="w-full">
+          {busy ? 'Entrando…' : 'Entrar'}
         </Button>
       </form>
     </Centered>
