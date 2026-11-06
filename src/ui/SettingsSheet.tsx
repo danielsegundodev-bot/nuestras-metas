@@ -1,5 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useData } from '../data/store'
+import { formatMonthLong } from '../lib/dates'
+import { buildMonthlyReport, defaultReportMonth, reportMonths } from '../lib/monthlyReport'
 import { orderProfiles } from '../lib/people'
 import { goalColor } from '../lib/rings'
 import type { Currency, Goal } from '../lib/types'
@@ -25,6 +27,83 @@ function Arrow({ dir }: { dir: 'up' | 'down' }) {
     >
       <path d={dir === 'up' ? 'M3 10l5-5 5 5' : 'M3 6l5 5 5-5'} />
     </svg>
+  )
+}
+
+/** Downloads a Blob. On iOS Safari the object URL opens the PDF viewer (share/save from there). */
+function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.rel = 'noopener'
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 60_000)
+}
+
+function MonthlyReportSection() {
+  const { goals, contributions, profiles, fx } = useData()
+  const { toast } = useUi()
+  const active = useMemo(() => {
+    const ids = new Set(goals.filter((g) => !g.archived).map((g) => g.id))
+    return contributions.filter((c) => ids.has(c.goal_id))
+  }, [goals, contributions])
+  const [now] = useState(() => new Date())
+  const months = useMemo(() => reportMonths(active, now), [active, now])
+  const [picked, setPicked] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+  const month = picked && months.includes(picked) ? picked : defaultReportMonth(active, now)
+
+  async function download() {
+    setBusy(true)
+    try {
+      const report = buildMonthlyReport(goals, contributions, profiles, month, fx?.rate ?? null)
+      // Loaded only now so jsPDF stays out of the main bundle.
+      const { renderMonthlyPdf } = await import('./pdf/renderMonthlyPdf')
+      const blob = await renderMonthlyPdf(report)
+      downloadBlob(blob, `nuestras-metas-${month}.pdf`)
+    } catch {
+      toast('No se pudo generar el PDF.', { tone: 'error' })
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <section aria-label="Resumen mensual">
+      <SectionTitle>Resumen mensual</SectionTitle>
+      <Group>
+        <label className="flex min-h-11 items-center justify-between gap-4 px-4">
+          <span className="text-body">Mes</span>
+          <select
+            value={month}
+            onChange={(e) => setPicked(e.target.value)}
+            disabled={months.length === 0}
+            className="min-h-11 bg-transparent text-right text-body text-ink outline-none"
+          >
+            {months.length === 0 && <option value={month}>{formatMonthLong(month)}</option>}
+            {[...months].reverse().map((m) => (
+              <option key={m} value={m}>
+                {formatMonthLong(m)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button
+          type="button"
+          onClick={() => void download()}
+          disabled={busy}
+          className="flex min-h-11 w-full items-center px-4 text-left text-body text-accent disabled:opacity-40"
+        >
+          {busy ? 'Generando…' : 'Descargar PDF'}
+        </button>
+      </Group>
+      <p className="mt-1.5 px-1 text-caption text-ink-2">
+        Totales, avance por meta y todos los movimientos del mes, como respaldo.
+      </p>
+    </section>
   )
 }
 
@@ -269,6 +348,8 @@ export function SettingsSheet({ focus }: { focus?: 'goals' }) {
             </div>
           )}
         </section>
+
+        <MonthlyReportSection />
 
         <section aria-label="Cuenta">
           <Group>

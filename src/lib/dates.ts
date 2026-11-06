@@ -23,3 +23,7 @@ export const formatMonthShort = (d: Date | string): string =>
 /** "6 nov 2026" */
 export const formatDay = (d: Date | string): string =>
   format(typeof d === 'string' ? parseLocal(d) : d, 'd MMM yyyy', { locale: es }).replace('.', '')
+
+/** "octubre 2026" */
+export const formatMonthLong = (d: Date | string): string =>
+  format(typeof d === 'string' ? parseLocal(d) : d, 'MMMM yyyy', { locale: es })
