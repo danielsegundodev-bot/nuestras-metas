@@ -30,10 +30,7 @@ jobs:
       - run: npm run test:run
 
       - name: Build
-        run: npm run build # also copies dist/index.html to dist/404.html for deep links
-        env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+        run: npm run build # uses .env.production; also copies dist/index.html to dist/404.html
 
       - uses: actions/upload-pages-artifact@v3
         with:
