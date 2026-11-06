@@ -1,0 +1,37 @@
+{
+  "name": "nuestras-metas",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build && cp dist/index.html dist/404.html",
+    "preview": "vite preview",
+    "typecheck": "tsc -b",
+    "lint": "oxlint src",
+    "format": "prettier --write .",
+    "test": "vitest",
+    "test:run": "vitest run"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.119.0",
+    "date-fns": "^4.4.0",
+    "framer-motion": "^14.10.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "recharts": "^3.10.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.5",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.2.1",
+    "oxlint": "^1.92.0",
+    "prettier": "^3.9.10",
+    "tailwindcss": "^4.3.5",
+    "typescript": "~5.9",
+    "vite": "^8.3.6",
+    "vitest": "^5.1.0"
+  }
+}

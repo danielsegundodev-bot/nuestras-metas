@@ -1,0 +1,19 @@
+{
+  "name": "Nuestras metas",
+  "short_name": "Metas",
+  "description": "Nuestros ahorros para la casa y la boda.",
+  "lang": "es-MX",
+  "dir": "ltr",
+  "start_url": "/nuestras-metas/",
+  "scope": "/nuestras-metas/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F2F2F7",
+  "theme_color": "#F2F2F7",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
