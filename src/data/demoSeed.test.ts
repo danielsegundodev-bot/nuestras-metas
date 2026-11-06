@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import { savedPerGoal } from '../lib/stats'
-import { buildDemoData, DEMO_BODA, DEMO_CASA } from './demoSeed'
+import {
+  buildDemoData,
+  DEMO_BODA,
+  DEMO_CASA,
+  DEMO_DICIEMBRES,
+  DEMO_EMERGENCIA,
+  DEMO_HOGAR,
+} from './demoSeed'
 
 describe('buildDemoData', () => {
   const now = new Date(2026, 10, 6)
@@ -20,11 +27,25 @@ describe('buildDemoData', () => {
     expect(d.contributions.every((c) => c.fx_usd_mxn >= 17 && c.fx_usd_mxn <= 20)).toBe(true)
   })
 
-  it('leaves both goals partially funded', () => {
+  it('seeds the five goals from the migration, all partially funded', () => {
+    expect(d.goals.map((g) => g.name)).toEqual([
+      'Casa',
+      'Boda',
+      'Diciembres juntos',
+      'Fondo de emergencia',
+      'Nuestro hogar',
+    ])
     const saved = savedPerGoal(d.contributions)
-    expect(saved[DEMO_CASA]).toBeGreaterThan(0)
-    expect(saved[DEMO_CASA]).toBeLessThan(800_000)
-    expect(saved[DEMO_BODA]).toBeGreaterThan(0)
-    expect(saved[DEMO_BODA]).toBeLessThan(300_000)
+    for (const g of d.goals) {
+      expect(saved[g.id]).toBeGreaterThan(0)
+      expect(saved[g.id]).toBeLessThan(g.target_mxn)
+    }
+    expect([DEMO_CASA, DEMO_BODA, DEMO_DICIEMBRES, DEMO_EMERGENCIA, DEMO_HOGAR]).toHaveLength(5)
+  })
+
+  it('spends the December flight money in December', () => {
+    const dec = d.contributions.filter((c) => c.goal_id === DEMO_DICIEMBRES && c.amount < 0)
+    expect(dec.length).toBeGreaterThan(0)
+    expect(dec.every((c) => c.date.slice(5, 7) === '12')).toBe(true)
   })
 })
