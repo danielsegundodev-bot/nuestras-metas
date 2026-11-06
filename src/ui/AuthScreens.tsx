@@ -45,8 +45,13 @@ export function LoginScreen() {
     try {
       await signIn(email.trim())
       setSent(true)
-    } catch {
-      setError('No se pudo enviar el enlace. Revisa el correo e intenta de nuevo.')
+    } catch (err) {
+      const msg = err instanceof Error ? err.message.toLowerCase() : ''
+      setError(
+        msg.includes('rate limit')
+          ? 'Ya se enviaron varios enlaces hace poco. Espera una hora y vuelve a intentarlo, o usa el último enlace que te llegó.'
+          : 'No se pudo enviar el enlace. Revisa el correo e intenta de nuevo.',
+      )
     } finally {
       setBusy(false)
     }
