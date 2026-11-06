@@ -4,6 +4,7 @@
   "description": "Nuestros ahorros para la casa y la boda.",
   "lang": "es-MX",
   "dir": "ltr",
+  "id": "/nuestras-metas/",
   "start_url": "/nuestras-metas/",
   "scope": "/nuestras-metas/",
   "display": "standalone",
