@@ -33,7 +33,7 @@ export function AllActivitySheet() {
   }, [live, shown])
 
   return (
-    <Sheet title="Todos los movimientos" onClose={closeSheet}>
+    <Sheet title="Movimientos" onClose={closeSheet}>
       <div className="flex flex-col gap-5">
         {groups.map((g) => (
           <section key={g.key} aria-label={formatMonthLong(g.key)}>

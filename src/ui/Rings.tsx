@@ -4,7 +4,7 @@ import { goalColor, ringGeometry } from '../lib/rings'
 
 export interface RingItem {
   id: string
-  /** 0..2: above 1 the ring is full and a darker second lap overlaps it (overfunded). */
+  /** Saved / target ratio. Above 1 the ring is full and a darker second lap overlaps it. */
   progress: number
   color: string
   label: string
@@ -56,9 +56,11 @@ export function Rings({
           {items.map((it, i) => {
             const g = geo[i]!
             const color = goalColor(it.color)
-            const raw = Math.min(2, Math.max(0, it.progress))
+            const raw = Math.min(1000, Math.max(0, it.progress))
             const p = Math.min(1, raw)
-            const p2 = Math.max(0, raw - 1)
+            // Past one lap, the darker second lap shows the fraction beyond a whole number of laps.
+            const extra = raw - 1
+            const p2 = extra <= 0 ? 0 : Math.max(0.04, Number.isInteger(extra) ? 0.999 : extra % 1)
             const dark = `color-mix(in srgb, ${color} 62%, black)`
             return (
               <g key={it.id}>

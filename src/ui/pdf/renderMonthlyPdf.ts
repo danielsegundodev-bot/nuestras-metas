@@ -104,7 +104,7 @@ export async function renderMonthlyPdf(
   const deltaSub =
     t.deltaPct === null
       ? `Mes anterior: ${mxn(t.previousMonthMxn)}`
-      : `${t.deltaPct > 0 ? '+' : ''}${Math.round(t.deltaPct * 100)}% sobre ${mxn(t.previousMonthMxn)}`
+      : `${t.deltaPct > 0 ? '+' : ''}${Math.abs(t.deltaPct) > 9.99 ? (t.deltaPct > 0 ? 'más de 999' : 'menos de -999') : Math.round(t.deltaPct * 100)}% sobre ${mxn(t.previousMonthMxn)}`
   const tiles = [
     {
       label: 'Ahorrado este mes',
@@ -164,8 +164,8 @@ export async function renderMonthlyPdf(
         cellPadding: { top: 7, bottom: 7, left: 16, right: 4 },
         fontStyle: 'bold',
       },
-      1: { cellWidth: 132 },
-      [barCol]: { cellWidth: 98 },
+      1: { cellWidth: 144 },
+      [barCol]: { cellWidth: 88 },
       3: { halign: 'right' },
       4: { halign: 'right' },
     },
@@ -261,8 +261,8 @@ export async function renderMonthlyPdf(
         0: { cellWidth: 56 },
         1: { cellWidth: 62, cellPadding: { top: 5, bottom: 5, left: 11, right: 3 } },
         2: { cellWidth: 62 },
-        3: { cellWidth: 62, halign: 'right' },
-        4: { cellWidth: 70, halign: 'right' },
+        3: { cellWidth: 74, halign: 'right' },
+        4: { cellWidth: 78, halign: 'right' },
         5: { cellWidth: 44, halign: 'right' },
       },
       didParseCell: alignHead([3, 4, 5]),
