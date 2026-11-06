@@ -4,13 +4,13 @@ import { formatDateTimeLong, formatDayLong, timestampDay } from './dates'
 describe('date formatting', () => {
   it('formats a full es-MX date and time', () => {
     expect(formatDateTimeLong(new Date(2026, 10, 6, 10, 42))).toBe(
-      'viernes 6 de noviembre de 2026, 10:42 a. m.',
+      'viernes 6 de noviembre de 2026, 10:42\u00a0a.\u00a0m.',
     )
     expect(formatDateTimeLong(new Date(2026, 10, 6, 0, 5))).toBe(
-      'viernes 6 de noviembre de 2026, 12:05 a. m.',
+      'viernes 6 de noviembre de 2026, 12:05\u00a0a.\u00a0m.',
     )
     expect(formatDateTimeLong(new Date(2026, 10, 6, 15, 0))).toBe(
-      'viernes 6 de noviembre de 2026, 3:00 p. m.',
+      'viernes 6 de noviembre de 2026, 3:00\u00a0p.\u00a0m.',
     )
   })
   it('formats a day from an ISO date', () => {

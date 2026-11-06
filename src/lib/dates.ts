@@ -39,7 +39,8 @@ export function formatDateTimeLong(timestamp: string | Date): string {
   const h = d.getHours()
   const h12 = h % 12 === 0 ? 12 : h % 12
   const mm = String(d.getMinutes()).padStart(2, '0')
-  return `${formatDayLong(d)}, ${h12}:${mm} ${h < 12 ? 'a. m.' : 'p. m.'}`
+  // Non-breaking spaces keep "10:42 a. m." on one line.
+  return `${formatDayLong(d)}, ${h12}:${mm}\u00a0${h < 12 ? 'a.\u00a0m.' : 'p.\u00a0m.'}`
 }
 
 /** Local `yyyy-MM-dd` of a timestamp (created_at), or null when it can't be parsed. */
