@@ -187,9 +187,23 @@ export function DataProvider({
       clearTimeout(timer)
       timer = setTimeout(() => void flush(), 250)
     })
+    // Phones suspend backgrounded apps and the realtime socket can miss events
+    // meanwhile, so reload everything whenever the app comes back.
+    const catchUp = () => {
+      if (document.visibilityState !== 'visible') return
+      for (const t of ['contributions', 'goals', 'profiles', 'settings']) pending.add(t)
+      clearTimeout(timer)
+      timer = setTimeout(() => void flush(), 250)
+    }
+    document.addEventListener('visibilitychange', catchUp)
+    window.addEventListener('online', catchUp)
+    window.addEventListener('pageshow', catchUp)
     return () => {
       clearTimeout(timer)
       off()
+      document.removeEventListener('visibilitychange', catchUp)
+      window.removeEventListener('online', catchUp)
+      window.removeEventListener('pageshow', catchUp)
     }
   }, [ready, source, patch])
 
