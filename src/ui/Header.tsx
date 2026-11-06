@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useData } from '../data/store'
 import { personColor } from '../lib/people'
 import type { Currency } from '../lib/types'
+import { InstallButton } from './InstallButton'
 import { Avatar, Segmented } from './primitives'
 import { useUi } from './ui'
 
@@ -86,7 +87,8 @@ export function Header() {
   const { currency, setCurrency } = useUi()
   return (
     <header className="pt-[env(safe-area-inset-top)]">
-      <div className="flex items-center justify-end gap-2 pt-1">
+      <div className="flex items-center justify-end gap-1 pt-1">
+        <InstallButton />
         <Segmented<Currency>
           compact
           label="Moneda"

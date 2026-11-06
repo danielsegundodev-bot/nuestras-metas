@@ -1,5 +1,6 @@
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { useData } from '../data/store'
+import { InstallButton } from './InstallButton'
 import { Button, inputClass } from './primitives'
 
 function Mark() {
@@ -12,9 +13,12 @@ function Mark() {
   )
 }
 
-function Centered({ children }: { children: ReactNode }) {
+function Centered({ children, corner }: { children: ReactNode; corner?: ReactNode }) {
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-[400px] flex-col items-center justify-center gap-6 px-6 py-10 text-center">
+    <main className="relative mx-auto flex min-h-dvh w-full max-w-[400px] flex-col items-center justify-center gap-6 px-6 py-10 text-center">
+      {corner && (
+        <div className="absolute right-2 top-[calc(env(safe-area-inset-top)+4px)]">{corner}</div>
+      )}
       <Mark />
       {children}
     </main>
@@ -59,7 +63,7 @@ export function LoginScreen() {
   }
 
   return (
-    <Centered>
+    <Centered corner={<InstallButton />}>
       <div>
         <h1 className="text-large-title font-bold leading-tight tracking-[-0.02em]">
           Nuestras metas
