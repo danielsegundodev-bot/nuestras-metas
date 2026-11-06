@@ -84,6 +84,7 @@
 
 @layer base {
   html {
+    background: var(--canvas);
     -webkit-text-size-adjust: 100%;
   }
   body {
