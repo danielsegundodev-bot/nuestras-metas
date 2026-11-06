@@ -89,10 +89,7 @@ export function CumulativeChart({
   const last = data[data.length - 1]
   const summary = last
     ? people
-        .map(
-          (p) =>
-            `${p.display_name}: ${formatMoneyAuto(Number(last[p.user_id]) || 0, cur)}`,
-        )
+        .map((p) => `${p.display_name}: ${formatMoneyAuto(Number(last[p.user_id]) || 0, cur)}`)
         .join(', ')
     : ''
   const showChips = !fixedGoalId && goals.length > 1
@@ -166,12 +163,7 @@ export function CumulativeChart({
                 />
                 <Tooltip
                   cursor={{ stroke: 'var(--separator)', strokeWidth: 1 }}
-                  content={
-                    <ChartTooltip
-                      profiles={people}
-                      fmt={(v) => formatMoneyAuto(v, cur)}
-                    />
-                  }
+                  content={<ChartTooltip profiles={people} fmt={(v) => formatMoneyAuto(v, cur)} />}
                 />
                 {people.map((p) => {
                   const color = personColor(people, p.user_id)

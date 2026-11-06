@@ -47,6 +47,7 @@ const toProfile = (r: Row): Profile => ({
   display_name: String(r.display_name ?? ''),
   currency: (r.currency as Currency) ?? 'MXN',
   color: (r.color as string | null) ?? null,
+  avatar: (r.avatar as string | null) ?? null,
   created_at: String(r.created_at ?? ''),
 })
 

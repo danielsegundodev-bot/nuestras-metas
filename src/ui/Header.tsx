@@ -39,6 +39,7 @@ function AvatarMenu() {
       >
         <Avatar
           name={me?.display_name ?? '?'}
+          emoji={me?.avatar}
           color={me ? personColor(profiles, me.user_id) : 'var(--him)'}
         />
       </button>

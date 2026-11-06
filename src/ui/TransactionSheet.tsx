@@ -88,7 +88,12 @@ export function TransactionSheet({ id, back }: { id: string; back?: Exclude<Shee
           </Row>
           <Row label="Quién">
             <span className="flex items-center gap-2">
-              <Avatar name={person?.display_name ?? '?'} color={color} size={28} />
+              <Avatar
+                name={person?.display_name ?? '?'}
+                emoji={person?.avatar}
+                color={color}
+                size={28}
+              />
               <span className="font-semibold" style={{ color }}>
                 {person?.display_name ?? 'Sin nombre'}
               </span>

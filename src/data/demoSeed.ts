@@ -46,6 +46,7 @@ export function buildDemoData(now: Date = new Date()): DemoData {
       display_name: 'Daniel',
       currency: 'USD',
       color: null,
+      avatar: '🦊',
       created_at: createdBase,
     },
     {
@@ -53,6 +54,7 @@ export function buildDemoData(now: Date = new Date()): DemoData {
       display_name: 'Ella',
       currency: 'MXN',
       color: null,
+      avatar: '🌻',
       created_at: '2025-09-01T12:05:00.000Z',
     },
   ]

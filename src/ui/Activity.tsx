@@ -56,7 +56,11 @@ export function ActivityList({
         onClick={() => openSheet({ type: 'txn', id: c.id, back })}
         className="flex min-h-14 w-full items-center gap-3 py-2 pl-4 pr-3 text-left active:bg-fill"
       >
-        <Avatar name={person?.display_name ?? '?'} color={personColor(profiles, c.user_id)} />
+        <Avatar
+          name={person?.display_name ?? '?'}
+          emoji={person?.avatar}
+          color={personColor(profiles, c.user_id)}
+        />
         <div className="min-w-0 flex-1">
           <p className="truncate text-body">
             {title}
