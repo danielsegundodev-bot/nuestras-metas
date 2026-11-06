@@ -29,8 +29,8 @@ export interface DataSource {
   getSession(): Promise<Session | null>
   /** Returns an unsubscribe function. */
   onAuthChange(cb: (session: Session | null) => void): () => void
-  /** Sends a magic link; redirects back to `window.location.origin + BASE_URL`. */
-  signInWithEmail(email: string): Promise<void>
+  /** Email + password sign-in (users are created by hand in the Supabase dashboard). */
+  signInWithPassword(email: string, password: string): Promise<void>
   signOut(): Promise<void>
   /** Whether the signed-in email is in `allowed_emails`. */
   isAllowed(): Promise<boolean>

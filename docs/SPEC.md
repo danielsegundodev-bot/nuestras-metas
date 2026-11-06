@@ -3,7 +3,7 @@
 A private savings dashboard for a couple. He moves to the US for ~5 years (comes home every December for the whole month); she stays in Mexico. Both log savings **manually** toward shared goals and see, at a glance, that the goals are materializing. UI language: **Spanish (es-MX)**. Code, commits, comments: English.
 
 ## Users & access
-- Exactly two people. Login with Supabase Auth **magic link (email OTP)**.
+- Exactly two people. Login with Supabase Auth **email + password**; users are created by hand in the dashboard (sign-ups disabled, no emails sent).
 - Data protected by Postgres **RLS**: only emails listed in table `allowed_emails` can read/write anything. Anyone else who logs in sees a clear "Esta cuenta no tiene acceso" screen.
 - Each person has a profile: display name, home currency (USD or MXN), color.
 
@@ -22,7 +22,7 @@ A private savings dashboard for a couple. He moves to the US for ~5 years (comes
 - Totals display in MXN by default; a segmented toggle MXN/USD in the header converts using the current rate. Format with `Intl.NumberFormat('es-MX')`.
 
 ## Screens (mobile-first; both will use phones most)
-1. **Login** — name of the app, email field, "Enviar enlace". Then "Revisa tu correo".
+1. **Login** — name of the app, email + password fields, "Entrar".
 2. **Dashboard** (single scroll page):
    - Header: "Nuestras metas", currency toggle, avatar menu (perfil, metas, cerrar sesión).
    - **Hero**: concentric progress rings, one ring per active goal (outermost = first goal), animating once on load. Center: total saved together. Beside/below: legend rows "🏡 Casa — 34% · $272,000 de $800,000".

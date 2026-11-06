@@ -80,7 +80,7 @@ export function createDemoSource(): DataSource {
     onAuthChange() {
       return () => {}
     },
-    async signInWithEmail() {},
+    async signInWithPassword() {},
     async signOut() {
       // Demo is always signed in as Daniel.
     },

@@ -31,15 +31,12 @@ Opcional — fechas de mudanza y regreso (también se editan desde la app):
 update public.settings set move_date = '2026-01-15', return_date = '2031-01-15' where id = 1;
 ```
 
-## 4. Autenticación
+## 4. Autenticación (correo + contraseña, sin enviar correos)
 
-1. **Authentication → Sign In / Providers → Email**: debe estar **activado** (enlace mágico).
-2. No hace falta (ni conviene) desactivar los registros: con enlace mágico cualquiera puede recibir un correo de acceso, pero **RLS bloquea todos los datos** a quien no esté en `allowed_emails`. Esa persona solo verá la pantalla “Esta cuenta no tiene acceso”.
-3. **Authentication → URL Configuration**:
-   - **Site URL**: `https://danielsegundodev-bot.github.io/nuestras-metas/`
-   - **Redirect URLs** (agrega ambas):
-     - `https://danielsegundodev-bot.github.io/nuestras-metas/`
-     - `http://localhost:5173/nuestras-metas/`
+1. **Authentication → Sign In / Providers → Email**: activado. Desactiva **Confirm email**.
+2. **Authentication → Sign In / Providers**: desactiva **Allow new users to sign up**. Así nadie más puede crear cuenta.
+3. **Authentication → Users → Add user → Create new user**: crea una cuenta por persona (correo + contraseña) con **Auto Confirm User** marcado. No se envía ningún correo.
+4. Agrega cada correo a `allowed_emails` (paso 2). Aunque alguien tuviera cuenta, **RLS bloquea los datos** a quien no esté en esa tabla.
 
 ## 5. Variables de entorno
 

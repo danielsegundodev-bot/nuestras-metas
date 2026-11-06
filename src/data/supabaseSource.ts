@@ -86,11 +86,8 @@ export function createSupabaseSource(url: string, anonKey: string): DataSource {
       return () => data.subscription.unsubscribe()
     },
 
-    async signInWithEmail(email) {
-      const { error } = await sb.auth.signInWithOtp({
-        email: email.trim(),
-        options: { emailRedirectTo: window.location.origin + import.meta.env.BASE_URL },
-      })
+    async signInWithPassword(email, password) {
+      const { error } = await sb.auth.signInWithPassword({ email: email.trim(), password })
       if (error) throw new Error(error.message)
     },
 
