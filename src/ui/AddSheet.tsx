@@ -10,6 +10,10 @@ import { errorMessage, useUi } from './ui'
 
 type Kind = 'deposit' | 'withdrawal'
 
+/** Sanity bounds for a typed USD→MXN rate. */
+const MIN_RATE = 5
+const MAX_RATE = 50
+
 /** Add (or edit) a contribution. Bottom sheet. */
 export function AddSheet({ goalId, editing }: { goalId?: string; editing?: Contribution }) {
   const { goals, me, fx, addContribution, updateContribution } = useData()
@@ -32,6 +36,7 @@ export function AddSheet({ goalId, editing }: { goalId?: string; editing?: Contr
   const [date, setDate] = useState(() => editing?.date ?? toISODate(new Date()))
   const [note, setNote] = useState(editing?.note ?? '')
   const [rateText, setRateText] = useState('')
+  const [customRate, setCustomRate] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -41,7 +46,7 @@ export function AddSheet({ goalId, editing }: { goalId?: string; editing?: Contr
       amountRef.current.setSelectionRange(caretRef.current, caretRef.current)
       caretRef.current = null
     }
-  }, [amountText])
+  })
 
   function onAmountChange(e: ChangeEvent<HTMLInputElement>) {
     let raw = e.target.value
@@ -65,12 +70,15 @@ export function AddSheet({ goalId, editing }: { goalId?: string; editing?: Contr
     editing && editing.currency === currency ? editing.fx_usd_mxn : (fx?.rate ?? null)
   const typedRate = Number(rateText.replace(',', '.'))
   const askRate = currency === 'USD' && knownRate === null
-  const rate = knownRate ?? (typedRate > 0 ? typedRate : null)
+  const typingRate = currency === 'USD' && (customRate || askRate)
+  const typedOk = rateText.trim() !== '' && typedRate >= MIN_RATE && typedRate <= MAX_RATE
+  const rate = typingRate ? (typedOk ? typedRate : null) : knownRate
   const rateOk = currency === 'MXN' || (rate !== null && rate > 0)
   const valid = amount !== null && amount > 0 && pickedGoal !== null && rateOk && date !== ''
   const mxnEquivalent =
     amount !== null && amount > 0 && currency === 'USD' && rate ? toMXN(amount, 'USD', rate) : null
 
+  const rateIsToday = !editing || editing.currency !== currency
   const submitLabel = editing
     ? 'Guardar cambios'
     : kind === 'withdrawal'
@@ -145,7 +153,7 @@ export function AddSheet({ goalId, editing }: { goalId?: string; editing?: Contr
           />
           <p className="num mt-0.5 min-h-5 text-footnote text-ink-2" aria-live="polite">
             {mxnEquivalent !== null
-              ? `Son ${formatMoneyAuto(mxnEquivalent, 'MXN')} a ${rate?.toFixed(2)} pesos por dólar`
+              ? `Son ${formatMoneyAuto(mxnEquivalent, 'MXN')}`
               : amountText !== '' && amount === null
                 ? 'Escribe solo números, por ejemplo 1500 o 1,500.50'
                 : ''}
@@ -162,18 +170,59 @@ export function AddSheet({ goalId, editing }: { goalId?: string; editing?: Contr
           />
         </div>
 
-        {askRate && (
+        {currency === 'USD' && !typingRate && knownRate !== null && (
+          <p className="num -mt-2 flex flex-wrap items-center gap-x-2 px-1 text-caption text-ink-2">
+            <span>
+              1 USD = ${knownRate.toFixed(2)} ·{' '}
+              {rateIsToday ? 'tipo de cambio de hoy' : 'tipo de cambio guardado'}
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                setRateText(knownRate.toFixed(2))
+                setCustomRate(true)
+              }}
+              className="-my-3 min-h-11 px-1 font-semibold text-accent"
+            >
+              Cambiar
+            </button>
+          </p>
+        )}
+        {typingRate && (
           <Field
             label="Tipo de cambio (pesos por 1 dólar)"
-            hint="No pudimos obtener el tipo de cambio. Escríbelo para continuar."
+            hint={
+              askRate
+                ? 'No pudimos obtener el tipo de cambio. Escríbelo para continuar.'
+                : 'Solo se usa en este movimiento.'
+            }
           >
             <input
               inputMode="decimal"
               placeholder="18.50"
+              autoFocus={customRate}
               value={rateText}
               onChange={(e) => setRateText(e.target.value)}
+              aria-invalid={rateText.trim() !== '' && !typedOk}
               className={cx(inputClass, 'num')}
             />
+            {rateText.trim() !== '' && !typedOk && (
+              <span role="alert" className="mt-1.5 block px-1 text-caption text-danger">
+                Escribe un número entre {MIN_RATE} y {MAX_RATE}, por ejemplo 18.50.
+              </span>
+            )}
+            {customRate && knownRate !== null && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault()
+                  setCustomRate(false)
+                }}
+                className="mt-1 min-h-11 px-1 text-caption font-semibold text-accent"
+              >
+                Usar el automático (${knownRate.toFixed(2)})
+              </button>
+            )}
           </Field>
         )}
 

@@ -8,10 +8,13 @@ const FOCUSABLE =
 export function Sheet({
   title,
   onClose,
+  onBack,
   children,
 }: {
   title: string
   onClose(): void
+  /** Shows a "Atrás" button before the title. */
+  onBack?(): void
   children: ReactNode
 }) {
   const reduce = useReducedMotion()
@@ -89,9 +92,23 @@ export function Sheet({
           <span aria-hidden className="h-1 w-9 rounded-full bg-fill" />
         </div>
         <div className="flex shrink-0 items-center justify-between gap-3 px-4 pb-2 pt-1">
-          <h2 id={titleId} className="text-title-3 font-semibold tracking-[-0.01em]">
-            {title}
-          </h2>
+          <div className="flex min-w-0 items-center gap-1">
+            {onBack && (
+              <button
+                type="button"
+                onClick={onBack}
+                className="-ml-2 min-h-11 shrink-0 rounded-lg px-2 text-body font-semibold text-accent"
+              >
+                ‹ Atrás
+              </button>
+            )}
+            <h2
+              id={titleId}
+              className="min-w-0 truncate text-title-3 font-semibold tracking-[-0.01em]"
+            >
+              {title}
+            </h2>
+          </div>
           <button
             type="button"
             onClick={onClose}

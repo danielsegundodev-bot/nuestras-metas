@@ -159,7 +159,7 @@ export function CumulativeChart({
                 <YAxis
                   axisLine={false}
                   tickLine={false}
-                  width={52}
+                  width={60}
                   tickCount={4}
                   tick={{ fill: 'var(--ink-2)', fontSize: 12 }}
                   tickFormatter={(v: number) => formatMoneyCompact(v, cur)}

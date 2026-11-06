@@ -1,4 +1,5 @@
-import { progressPct, type GoalSummary } from '../lib/stats'
+import { fitText } from '../lib/money'
+import { displayPct, type GoalSummary } from '../lib/stats'
 import { goalColor } from '../lib/rings'
 import { Group, Button } from './primitives'
 import { Rings } from './Rings'
@@ -18,6 +19,8 @@ export function Hero({
 }) {
   const { fmt, compact } = useMoney()
   const { openSheet } = useUi()
+  // The hole is ~45% of the ring width: shrink the total to fit, compact only as a last resort.
+  const fit = fitText(fmt(total), compact(total), { maxWidth: 38, maxSize: 8.4, minSize: 5.4 })
 
   return (
     <section aria-label="Resumen de metas">
@@ -26,15 +29,18 @@ export function Hero({
         label={`Progreso de ${summaries.length} metas. Ahorrado juntos: ${fmt(total)}`}
         items={summaries.map((s) => ({
           id: s.goal.id,
-          progress: s.progress,
+          progress: s.ratio,
           color: s.goal.color,
           label: s.goal.name,
         }))}
         center={
           <>
             <span className="text-[4.6cqw] leading-tight text-ink-2">Ahorrado juntos</span>
-            <span className="num text-[8.4cqw] font-bold leading-none tracking-[-0.02em]">
-              {fmt(total)}
+            <span
+              className="num whitespace-nowrap font-bold leading-none tracking-[-0.02em]"
+              style={{ fontSize: `${fit.size.toFixed(2)}cqw` }}
+            >
+              {fit.text}
             </span>
           </>
         }
@@ -66,9 +72,12 @@ export function Hero({
               />
               <span className="min-w-0 flex-1 truncate text-body">
                 <span aria-hidden>{goal.emoji}</span> {goal.name}
+                {saved >= goal.target_mxn && saved > 0 && (
+                  <span className="text-footnote text-ink-2"> · cumplida</span>
+                )}
               </span>
               <span className="num shrink-0 text-footnote font-semibold">
-                {progressPct(saved, goal.target_mxn)}%
+                {displayPct(saved, goal.target_mxn)}%
               </span>
               <span className="num hidden shrink-0 text-footnote text-ink-2 min-[460px]:inline">
                 {compact(saved)} / {compact(goal.target_mxn)}

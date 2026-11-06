@@ -1,20 +1,32 @@
 import { AnimatePresence } from 'framer-motion'
-import { useMemo, useState } from 'react'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { useData } from '../data/store'
 import { monthKey } from '../lib/dates'
 import { summarizeGoals } from '../lib/stats'
 import { ActivityList } from './Activity'
-import { AddSheet } from './AddSheet'
-import { CumulativeChart } from './CumulativeChart'
 import { DecemberStrip } from './DecemberStrip'
-import { GoalSheet } from './GoalSheet'
 import { GoalsList } from './GoalsList'
 import { Header } from './Header'
 import { Hero } from './Hero'
-import { SectionTitle } from './primitives'
-import { SettingsSheet } from './SettingsSheet'
+import { Button, SectionTitle } from './primitives'
 import { SplitBars } from './SplitBars'
 import { useUi } from './ui'
+
+// Heavy or rarely-needed pieces load on demand so the first paint stays light.
+const CumulativeChart = lazy(() =>
+  import('./CumulativeChart').then((m) => ({ default: m.CumulativeChart })),
+)
+const AddSheet = lazy(() => import('./AddSheet').then((m) => ({ default: m.AddSheet })))
+const GoalSheet = lazy(() => import('./GoalSheet').then((m) => ({ default: m.GoalSheet })))
+const SettingsSheet = lazy(() =>
+  import('./SettingsSheet').then((m) => ({ default: m.SettingsSheet })),
+)
+const TransactionSheet = lazy(() =>
+  import('./TransactionSheet').then((m) => ({ default: m.TransactionSheet })),
+)
+const AllActivitySheet = lazy(() =>
+  import('./AllActivitySheet').then((m) => ({ default: m.AllActivitySheet })),
+)
 
 export function Dashboard() {
   const { goals, contributions, profiles, settings, isDemo, fx, me, refreshFx } = useData()
@@ -59,12 +71,28 @@ export function Dashboard() {
         <DecemberStrip settings={settings} now={now} />
         <GoalsList summaries={summaries} contributions={live} now={now} />
         {live.length > 0 && (
-          <CumulativeChart contributions={live} profiles={profiles} goals={activeGoals} now={now} />
+          <Suspense fallback={<div aria-hidden className="h-[320px] rounded-xl bg-surface" />}>
+            <CumulativeChart
+              contributions={live}
+              profiles={profiles}
+              goals={activeGoals}
+              now={now}
+            />
+          </Suspense>
         )}
         {live.length > 0 && <SplitBars contributions={live} profiles={profiles} now={now} />}
         <section aria-label="Movimientos recientes">
           <SectionTitle>Movimientos recientes</SectionTitle>
           <ActivityList items={live.slice(0, 10)} goals={goals} now={now} />
+          {live.length > 10 && (
+            <Button
+              variant="plain"
+              className="mt-1 w-full"
+              onClick={() => openSheet({ type: 'activity' })}
+            >
+              Ver todos ({live.length})
+            </Button>
+          )}
         </section>
       </main>
 
@@ -83,17 +111,23 @@ export function Dashboard() {
         </div>
       )}
 
-      <AnimatePresence>
-        {sheet?.type === 'add' && (
-          <AddSheet
-            key={sheet.editing?.id ?? 'new'}
-            goalId={sheet.goalId}
-            editing={sheet.editing}
-          />
-        )}
-        {sheet?.type === 'goal' && <GoalSheet key={sheet.goalId} goalId={sheet.goalId} />}
-        {sheet?.type === 'settings' && <SettingsSheet key="settings" focus={sheet.focus} />}
-      </AnimatePresence>
+      <Suspense fallback={null}>
+        <AnimatePresence>
+          {sheet?.type === 'add' && (
+            <AddSheet
+              key={sheet.editing?.id ?? 'new'}
+              goalId={sheet.goalId}
+              editing={sheet.editing}
+            />
+          )}
+          {sheet?.type === 'goal' && <GoalSheet key={sheet.goalId} goalId={sheet.goalId} />}
+          {sheet?.type === 'settings' && <SettingsSheet key="settings" focus={sheet.focus} />}
+          {sheet?.type === 'txn' && (
+            <TransactionSheet key={`txn-${sheet.id}`} id={sheet.id} back={sheet.back} />
+          )}
+          {sheet?.type === 'activity' && <AllActivitySheet key="activity" />}
+        </AnimatePresence>
+      </Suspense>
     </>
   )
 }

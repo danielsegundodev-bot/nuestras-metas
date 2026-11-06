@@ -15,6 +15,8 @@ export type SheetState =
   | null
   | { type: 'add'; goalId?: string; editing?: Contribution }
   | { type: 'goal'; goalId: string }
+  | { type: 'txn'; id: string; back?: Exclude<SheetState, null> }
+  | { type: 'activity' }
   | { type: 'settings'; focus?: 'goals' }
 
 export interface Toast {

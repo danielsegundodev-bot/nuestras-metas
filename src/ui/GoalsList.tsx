@@ -1,4 +1,4 @@
-import { projectCompletion, progressPct, type GoalSummary } from '../lib/stats'
+import { displayPct, projectCompletion, type GoalSummary } from '../lib/stats'
 import { formatMonthYear } from '../lib/dates'
 import { goalColor } from '../lib/rings'
 import type { Contribution } from '../lib/types'
@@ -12,7 +12,7 @@ export function projectionText(
   summary: GoalSummary,
   now: Date,
 ): string | null {
-  if (summary.progress >= 1) return 'Meta cumplida'
+  if (summary.progress >= 1) return '✓ Meta cumplida'
   const p = projectCompletion(contributions, summary.goal.target_mxn, now, summary.goal.id)
   if (!p || p.monthsLeft > MAX_PROJECTION_YEARS * 12) return null
   return `A este ritmo: ${formatMonthYear(p.completion)}`
@@ -46,7 +46,7 @@ export function GoalsList({
         <Group>
           {summaries.map((s) => {
             const proj = projectionText(contributions, s, now)
-            const pct = progressPct(s.saved, s.goal.target_mxn)
+            const pct = displayPct(s.saved, s.goal.target_mxn)
             return (
               <button
                 key={s.goal.id}
@@ -63,7 +63,7 @@ export function GoalsList({
                 <div
                   role="progressbar"
                   aria-label={`Progreso de ${s.goal.name}`}
-                  aria-valuenow={pct}
+                  aria-valuenow={Math.min(100, pct)}
                   aria-valuemin={0}
                   aria-valuemax={100}
                   className="mt-2 h-2 overflow-hidden rounded-full"

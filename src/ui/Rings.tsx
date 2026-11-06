@@ -4,7 +4,7 @@ import { goalColor, ringGeometry } from '../lib/rings'
 
 export interface RingItem {
   id: string
-  /** [0, 1] */
+  /** 0..2: above 1 the ring is full and a darker second lap overlaps it (overfunded). */
   progress: number
   color: string
   label: string
@@ -56,7 +56,10 @@ export function Rings({
           {items.map((it, i) => {
             const g = geo[i]!
             const color = goalColor(it.color)
-            const p = Math.min(1, Math.max(0, it.progress))
+            const raw = Math.min(2, Math.max(0, it.progress))
+            const p = Math.min(1, raw)
+            const p2 = Math.max(0, raw - 1)
+            const dark = `color-mix(in srgb, ${color} 62%, black)`
             return (
               <g key={it.id}>
                 <circle
@@ -84,6 +87,25 @@ export function Rings({
                       : { duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: i * 0.08 }
                   }
                 />
+                {p2 > 0 && (
+                  <motion.circle
+                    cx={SIZE / 2}
+                    cy={SIZE / 2}
+                    r={g.r}
+                    fill="none"
+                    stroke={dark}
+                    strokeWidth={g.stroke}
+                    strokeLinecap="round"
+                    style={{ filter: 'drop-shadow(0 0 2px rgb(0 0 0 / 0.35))' }}
+                    initial={{ pathLength: reduce ? p2 : 0 }}
+                    animate={{ pathLength: p2 }}
+                    transition={
+                      reduce
+                        ? { duration: 0 }
+                        : { duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.9 + i * 0.08 }
+                    }
+                  />
+                )}
               </g>
             )
           })}

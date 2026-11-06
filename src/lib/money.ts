@@ -89,7 +89,7 @@ export function formatMoneyCompact(value: number, currency: Currency): string {
 }
 
 /** Relative glyph widths (em) of tabular rounded numerals, used to size text without measuring. */
-function emWidth(text: string): number {
+export function emWidth(text: string): number {
   let w = 0
   for (const ch of text) w += /[0-9$US]/.test(ch) ? 0.62 : /[.,]/.test(ch) ? 0.3 : 0.55
   return w
