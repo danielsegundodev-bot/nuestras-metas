@@ -7,6 +7,7 @@ const p = (user_id: string, created_at: string, color: string | null = null): Pr
   display_name: user_id,
   currency: 'MXN',
   color,
+  avatar: null,
   created_at,
 })
 

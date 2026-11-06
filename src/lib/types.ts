@@ -11,6 +11,8 @@ export interface Profile {
   currency: Currency
   /** CSS color for "who contributed"; null → fall back to --him / --her. */
   color: string | null
+  /** Emoji shown as the avatar; null → initial. */
+  avatar: string | null
   created_at: string
 }
 
@@ -71,7 +73,7 @@ export interface NewGoal {
 
 export type GoalPatch = Partial<Omit<Goal, 'id' | 'created_at'>>
 
-export type ProfilePatch = Partial<Pick<Profile, 'display_name' | 'currency' | 'color'>>
+export type ProfilePatch = Partial<Pick<Profile, 'display_name' | 'currency' | 'color' | 'avatar'>>
 
 /** Default goal palette (DESIGN.md). */
 export const GOAL_COLORS = ['#34C759', '#FF9500', '#30B0C7', '#AF52DE', '#FFCC00'] as const

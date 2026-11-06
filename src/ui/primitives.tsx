@@ -98,7 +98,17 @@ export function Group({ children, className }: { children: ReactNode; className?
 }
 
 /** Person avatar: initial on a tint, ringed in the person's color (color = who, never goal). */
-export function Avatar({ name, color, size = 32 }: { name: string; color: string; size?: number }) {
+export function Avatar({
+  name,
+  color,
+  emoji,
+  size = 32,
+}: {
+  name: string
+  color: string
+  emoji?: string | null
+  size?: number
+}) {
   return (
     <span
       aria-hidden
@@ -106,12 +116,13 @@ export function Avatar({ name, color, size = 32 }: { name: string; color: string
       style={{
         width: size,
         height: size,
-        fontSize: size * 0.42,
+        fontSize: emoji ? size * 0.56 : size * 0.42,
+        lineHeight: 1,
         background: `color-mix(in srgb, ${color} 18%, transparent)`,
         boxShadow: `inset 0 0 0 2px ${color}`,
       }}
     >
-      {initial(name)}
+      {emoji || initial(name)}
     </span>
   )
 }

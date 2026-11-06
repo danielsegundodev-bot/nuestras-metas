@@ -8,6 +8,7 @@ const profiles: Profile[] = [
     display_name: 'Daniel',
     currency: 'USD',
     color: null,
+    avatar: null,
     created_at: '2025-01-01T00:00:00Z',
   },
   {
@@ -15,6 +16,7 @@ const profiles: Profile[] = [
     display_name: 'Ana Rosa',
     currency: 'MXN',
     color: '#32ADE6',
+    avatar: null,
     created_at: '2025-01-02T00:00:00Z',
   },
 ]

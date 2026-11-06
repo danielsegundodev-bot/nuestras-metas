@@ -11,6 +11,31 @@ import { Sheet } from './Sheet'
 import { errorMessage, useUi } from './ui'
 
 const PERSON_COLORS = ['#5856D6', '#FF2D55', '#32ADE6', '#A2845E']
+const AVATARS = [
+  '🦊',
+  '🐻',
+  '🐼',
+  '🐨',
+  '🐯',
+  '🦁',
+  '🐸',
+  '🐵',
+  '🐶',
+  '🐱',
+  '🐰',
+  '🦄',
+  '🐢',
+  '🐙',
+  '🦋',
+  '🐝',
+  '🌻',
+  '🌸',
+  '🌵',
+  '🌙',
+  '⭐',
+  '🔥',
+  '🌊',
+]
 
 function Arrow({ dir }: { dir: 'up' | 'down' }) {
   return (
@@ -207,6 +232,39 @@ export function SettingsSheet({ focus }: { focus?: 'goals' }) {
               className={inputClass}
             />
           </Field>
+          <div>
+            <p id="my-avatar" className="mb-1.5 px-1 text-footnote text-ink-2">
+              Tu avatar
+            </p>
+            <div role="radiogroup" aria-labelledby="my-avatar" className="grid grid-cols-8 gap-1">
+              {[null, ...AVATARS].map((e) => {
+                const on = (me?.avatar ?? null) === e
+                return (
+                  <button
+                    key={e ?? 'initial'}
+                    type="button"
+                    role="radio"
+                    aria-checked={on}
+                    aria-label={e ? `Avatar ${e}` : 'Usar mi inicial'}
+                    onClick={() => void run(() => updateProfile({ avatar: e }), 'Guardado')}
+                    className="flex aspect-square min-h-11 items-center justify-center rounded-full text-[22px]"
+                    style={{
+                      background: on
+                        ? `color-mix(in srgb, ${effectiveColor} 22%, transparent)`
+                        : undefined,
+                      boxShadow: on ? `inset 0 0 0 2px ${effectiveColor}` : undefined,
+                    }}
+                  >
+                    {e ?? (
+                      <span className="num text-body font-bold text-ink">
+                        {(me?.display_name.trim()[0] ?? '?').toLocaleUpperCase('es-MX')}
+                      </span>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
           <div>
             <p className="mb-1.5 px-1 text-footnote text-ink-2">Moneda en la que ahorras</p>
             <Segmented<Currency>
