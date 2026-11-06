@@ -31,7 +31,20 @@ function Arrow({ dir }: { dir: 'up' | 'down' }) {
 }
 
 /** Downloads a Blob. On iOS Safari the object URL opens the PDF viewer (share/save from there). */
-function downloadBlob(blob: Blob, filename: string) {
+/** On phones, prefer the native share sheet (save to Files, WhatsApp…): installed
+ * Android PWAs can silently ignore <a download>. Falls back to a regular download. */
+async function saveBlob(blob: Blob, filename: string) {
+  const file = new File([blob], filename, { type: 'application/pdf' })
+  const coarse = window.matchMedia?.('(pointer: coarse)').matches
+  if (coarse && navigator.canShare?.({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: filename })
+      return
+    } catch (err) {
+      // User closed the share sheet: not an error.
+      if (err instanceof DOMException && err.name === 'AbortError') return
+    }
+  }
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
@@ -41,6 +54,13 @@ function downloadBlob(blob: Blob, filename: string) {
   a.click()
   a.remove()
   setTimeout(() => URL.revokeObjectURL(url), 60_000)
+}
+
+function isStaleChunkError(err: unknown) {
+  const msg = err instanceof Error ? err.message : String(err)
+  return /dynamically imported module|Importing a module script failed|Failed to fetch|error loading dynamically/i.test(
+    msg,
+  )
 }
 
 function MonthlyReportSection() {
@@ -63,9 +83,16 @@ function MonthlyReportSection() {
       // Loaded only now so jsPDF stays out of the main bundle.
       const { renderMonthlyPdf } = await import('./pdf/renderMonthlyPdf')
       const blob = await renderMonthlyPdf(report)
-      downloadBlob(blob, `nuestras-metas-${month}.pdf`)
-    } catch {
-      toast('No se pudo generar el PDF.', { tone: 'error' })
+      await saveBlob(blob, `nuestras-metas-${month}.pdf`)
+    } catch (err) {
+      console.error('PDF', err)
+      if (isStaleChunkError(err)) {
+        toast('Hay una versión nueva de la app. Recargando…', { tone: 'error' })
+        setTimeout(() => window.location.reload(), 1200)
+        return
+      }
+      const detail = err instanceof Error ? err.message : String(err)
+      toast(`No se pudo generar el PDF (${detail.slice(0, 80)}).`, { tone: 'error' })
     } finally {
       setBusy(false)
     }
