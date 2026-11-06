@@ -5,6 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
+    <meta name="color-scheme" content="light dark" />
+    <script>
+      // Some Chrome versions ignore media-query theme-color metas in standalone mode: keep
+      // one plain meta in sync with the system scheme (canvas tokens in src/index.css).
+      ;(function () {
+        var q = window.matchMedia('(prefers-color-scheme: dark)')
+        document
+          .querySelectorAll('meta[name="theme-color"]')
+          .forEach(function (m) {
+            m.remove()
+          })
+        var meta = document.createElement('meta')
+        meta.name = 'theme-color'
+        document.head.appendChild(meta)
+        function sync() {
+          meta.content = q.matches ? '#000000' : '#F2F2F7'
+        }
+        sync()
+        if (q.addEventListener) q.addEventListener('change', sync)
+        else q.addListener(sync)
+      })()
+    </script>
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />

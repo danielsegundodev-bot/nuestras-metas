@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useData } from '../data/store'
 import { formatDay } from '../lib/dates'
-import { progressPct, summarizeGoals } from '../lib/stats'
+import { emWidth } from '../lib/money'
+import { displayPct, summarizeGoals } from '../lib/stats'
 import { ActivityList } from './Activity'
 import { CumulativeChart } from './CumulativeChart'
 import { GoalForm } from './GoalForm'
@@ -36,7 +37,7 @@ export function GoalSheet({ goalId }: { goalId: string }) {
   }, [goal, closeSheet])
   if (!goal || !summary) return null
 
-  const pct = progressPct(summary.saved, goal.target_mxn)
+  const pct = displayPct(summary.saved, goal.target_mxn)
   const proj = projectionText(contributions, summary, now)
 
   async function archive() {
@@ -58,14 +59,19 @@ export function GoalSheet({ goalId }: { goalId: string }) {
             hole={0.62}
             maxStroke={16}
             label={`${goal.name}: ${pct}%`}
-            items={[
-              { id: goal.id, progress: summary.progress, color: goal.color, label: goal.name },
-            ]}
+            items={[{ id: goal.id, progress: summary.ratio, color: goal.color, label: goal.name }]}
             center={<span className="num text-[18cqw] font-bold tracking-[-0.02em]">{pct}%</span>}
           />
-          <div className="min-w-0">
-            <p className="num text-title-2 font-bold tracking-[-0.02em]">{fmt(summary.saved)}</p>
-            <p className="num text-footnote text-ink-2">de {fmt(goal.target_mxn)}</p>
+          <div className="min-w-0 flex-1" style={{ containerType: 'inline-size' }}>
+            <p
+              className="num whitespace-nowrap font-bold tracking-[-0.02em]"
+              style={{
+                fontSize: `min(28px, ${(100 / emWidth(fmt(summary.saved))).toFixed(2)}cqw)`,
+              }}
+            >
+              {fmt(summary.saved)}
+            </p>
+            <p className="num break-words text-footnote text-ink-2">de {fmt(goal.target_mxn)}</p>
             {proj && <p className="mt-1 text-footnote text-ink-2">{proj}</p>}
             {goal.target_date && (
               <p className="text-footnote text-ink-2">
@@ -89,7 +95,13 @@ export function GoalSheet({ goalId }: { goalId: string }) {
 
         <section>
           <SectionTitle>Movimientos</SectionTitle>
-          <ActivityList items={mine.slice(0, shown)} goals={goals} now={now} showGoal={false} />
+          <ActivityList
+            items={mine.slice(0, shown)}
+            goals={goals}
+            now={now}
+            showGoal={false}
+            back={{ type: 'goal', goalId }}
+          />
           {mine.length > shown && (
             <Button variant="plain" className="mt-1" onClick={() => setShown((n) => n + PAGE)}>
               Mostrar más

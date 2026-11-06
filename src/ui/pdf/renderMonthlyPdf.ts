@@ -1,7 +1,7 @@
 import type { jsPDF as JsPDF } from 'jspdf'
 import type { CellHookData } from 'jspdf-autotable'
 import { formatDay, formatMonthYear } from '../../lib/dates'
-import { formatMoney } from '../../lib/money'
+import { formatMoneyAuto } from '../../lib/money'
 import type { MonthlyReport } from '../../lib/monthlyReport'
 
 // Palette from DESIGN.md (light). Goal colors → goal bars/dots only; person colors → people only.
@@ -20,8 +20,8 @@ const safe = (s: string) =>
     .replace(/\s+/g, ' ')
     .trim()
 
-const mxn = (n: number) => formatMoney(n, 'MXN')
-const signedMxn = (n: number) => formatMoney(n, 'MXN', { signed: true })
+const mxn = (n: number) => formatMoneyAuto(n, 'MXN')
+const signedMxn = (n: number) => formatMoneyAuto(n, 'MXN', { signed: true })
 const pct = (share: number) => `${Math.round(share * 100)}%`
 
 /** autoTable keeps header cells left-aligned; mirror the column's alignment on the header. */
@@ -104,7 +104,7 @@ export async function renderMonthlyPdf(
   const deltaSub =
     t.deltaPct === null
       ? `Mes anterior: ${mxn(t.previousMonthMxn)}`
-      : `${t.deltaPct > 0 ? '+' : ''}${Math.round(t.deltaPct * 100)}% sobre ${mxn(t.previousMonthMxn)}`
+      : `${t.deltaPct > 0 ? '+' : ''}${Math.abs(t.deltaPct) > 9.99 ? (t.deltaPct > 0 ? 'más de 999' : 'menos de -999') : Math.round(t.deltaPct * 100)}% sobre ${mxn(t.previousMonthMxn)}`
   const tiles = [
     {
       label: 'Ahorrado este mes',
@@ -112,7 +112,7 @@ export async function renderMonthlyPdf(
       sub:
         t.monthUsd === null
           ? 'Sin tipo de cambio'
-          : `${formatMoney(t.monthUsd, 'USD')} a $${report.fxRate!.toFixed(2)} por dólar`,
+          : `${formatMoneyAuto(t.monthUsd, 'USD')} a $${report.fxRate!.toFixed(2)} por dólar`,
     },
     {
       label: 'Ahorrado juntos',
@@ -164,8 +164,8 @@ export async function renderMonthlyPdf(
         cellPadding: { top: 7, bottom: 7, left: 16, right: 4 },
         fontStyle: 'bold',
       },
-      1: { cellWidth: 132 },
-      [barCol]: { cellWidth: 98 },
+      1: { cellWidth: 144 },
+      [barCol]: { cellWidth: 88 },
       3: { halign: 'right' },
       4: { halign: 'right' },
     },
@@ -252,7 +252,7 @@ export async function renderMonthlyPdf(
         formatDay(m.date),
         safe(m.person),
         safe(m.goal),
-        formatMoney(m.amount, m.currency, { signed: true }),
+        formatMoneyAuto(m.amount, m.currency, { signed: true, entry: true }),
         signedMxn(m.amountMxn),
         m.currency === 'USD' ? `$${m.fx.toFixed(2)}` : '-',
         safe(m.note ?? ''),
@@ -261,8 +261,8 @@ export async function renderMonthlyPdf(
         0: { cellWidth: 56 },
         1: { cellWidth: 62, cellPadding: { top: 5, bottom: 5, left: 11, right: 3 } },
         2: { cellWidth: 62 },
-        3: { cellWidth: 62, halign: 'right' },
-        4: { cellWidth: 70, halign: 'right' },
+        3: { cellWidth: 74, halign: 'right' },
+        4: { cellWidth: 78, halign: 'right' },
         5: { cellWidth: 44, halign: 'right' },
       },
       didParseCell: alignHead([3, 4, 5]),

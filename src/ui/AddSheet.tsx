@@ -1,7 +1,7 @@
-import { useMemo, useState, type FormEvent } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
 import { useData } from '../data/store'
 import { toISODate } from '../lib/dates'
-import { formatMoney, toMXN } from '../lib/money'
+import { formatAmountInput, formatMoneyAuto, toMXN } from '../lib/money'
 import { goalColor, parseAmount } from '../lib/rings'
 import type { Contribution, Currency } from '../lib/types'
 import { Button, cx, Field, inputClass, Segmented } from './primitives'
@@ -9,6 +9,10 @@ import { Sheet } from './Sheet'
 import { errorMessage, useUi } from './ui'
 
 type Kind = 'deposit' | 'withdrawal'
+
+/** Sanity bounds for a typed USD→MXN rate. */
+const MIN_RATE = 5
+const MAX_RATE = 50
 
 /** Add (or edit) a contribution. Bottom sheet. */
 export function AddSheet({ goalId, editing }: { goalId?: string; editing?: Contribution }) {
@@ -20,7 +24,11 @@ export function AddSheet({ goalId, editing }: { goalId?: string; editing?: Contr
     [goals, editing],
   )
   const [kind, setKind] = useState<Kind>(editing && editing.amount < 0 ? 'withdrawal' : 'deposit')
-  const [amountText, setAmountText] = useState(editing ? String(Math.abs(editing.amount)) : '')
+  const [amountText, setAmountText] = useState(
+    editing ? formatAmountInput(String(Math.abs(editing.amount))).text : '',
+  )
+  const amountRef = useRef<HTMLInputElement>(null)
+  const caretRef = useRef<number | null>(null)
   const [currency, setCurrency] = useState<Currency>(editing?.currency ?? me?.currency ?? 'MXN')
   const [pickedGoal, setPickedGoal] = useState<string | null>(
     editing?.goal_id ?? goalId ?? choices[0]?.id ?? null,
@@ -28,8 +36,33 @@ export function AddSheet({ goalId, editing }: { goalId?: string; editing?: Contr
   const [date, setDate] = useState(() => editing?.date ?? toISODate(new Date()))
   const [note, setNote] = useState(editing?.note ?? '')
   const [rateText, setRateText] = useState('')
+  const [customRate, setCustomRate] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Re-place the caret after live thousands separators change the text length.
+  useLayoutEffect(() => {
+    if (caretRef.current !== null && amountRef.current) {
+      amountRef.current.setSelectionRange(caretRef.current, caretRef.current)
+      caretRef.current = null
+    }
+  })
+
+  function onAmountChange(e: ChangeEvent<HTMLInputElement>) {
+    let raw = e.target.value
+    let caret = e.target.selectionStart ?? raw.length
+    // Some keyboards (es-ES) type "," as the decimal mark.
+    if ((e.nativeEvent as InputEvent).data === ',' && !raw.includes('.')) {
+      raw = `${raw.slice(0, caret - 1)}.${raw.slice(caret)}`
+    }
+    const f = formatAmountInput(raw, caret)
+    caret = f.caret
+    caretRef.current = caret
+    setAmountText(f.text)
+  }
+
+  // Long numbers shrink to stay inside the card instead of scrolling sideways.
+  const amountFont = Math.max(22, Math.min(48, Math.floor(430 / Math.max(amountText.length, 1))))
 
   const amount = parseAmount(amountText)
   // Editing keeps the rate of the day the entry was made; new entries use today's rate.
@@ -37,12 +70,15 @@ export function AddSheet({ goalId, editing }: { goalId?: string; editing?: Contr
     editing && editing.currency === currency ? editing.fx_usd_mxn : (fx?.rate ?? null)
   const typedRate = Number(rateText.replace(',', '.'))
   const askRate = currency === 'USD' && knownRate === null
-  const rate = knownRate ?? (typedRate > 0 ? typedRate : null)
+  const typingRate = currency === 'USD' && (customRate || askRate)
+  const typedOk = rateText.trim() !== '' && typedRate >= MIN_RATE && typedRate <= MAX_RATE
+  const rate = typingRate ? (typedOk ? typedRate : null) : knownRate
   const rateOk = currency === 'MXN' || (rate !== null && rate > 0)
   const valid = amount !== null && amount > 0 && pickedGoal !== null && rateOk && date !== ''
   const mxnEquivalent =
     amount !== null && amount > 0 && currency === 'USD' && rate ? toMXN(amount, 'USD', rate) : null
 
+  const rateIsToday = !editing || editing.currency !== currency
   const submitLabel = editing
     ? 'Guardar cambios'
     : kind === 'withdrawal'
@@ -104,18 +140,20 @@ export function AddSheet({ goalId, editing }: { goalId?: string; editing?: Contr
           </label>
           <input
             id="amount"
+            ref={amountRef}
             inputMode="decimal"
             autoComplete="off"
             autoFocus={!editing}
             placeholder="0"
             value={amountText}
-            onChange={(e) => setAmountText(e.target.value)}
+            onChange={onAmountChange}
+            style={{ fontSize: amountFont }}
             aria-invalid={amountText !== '' && amount === null}
-            className="num block w-full bg-transparent text-[48px] font-bold leading-tight tracking-[-0.02em] text-ink outline-none placeholder:text-ink-2/50"
+            className="num block w-full min-w-0 bg-transparent font-bold leading-tight tracking-[-0.02em] text-ink outline-none placeholder:text-ink-2/50"
           />
           <p className="num mt-0.5 min-h-5 text-footnote text-ink-2" aria-live="polite">
             {mxnEquivalent !== null
-              ? `Son ${formatMoney(mxnEquivalent, 'MXN')} a ${rate?.toFixed(2)} pesos por dólar`
+              ? `Son ${formatMoneyAuto(mxnEquivalent, 'MXN')}`
               : amountText !== '' && amount === null
                 ? 'Escribe solo números, por ejemplo 1500 o 1,500.50'
                 : ''}
@@ -132,18 +170,59 @@ export function AddSheet({ goalId, editing }: { goalId?: string; editing?: Contr
           />
         </div>
 
-        {askRate && (
+        {currency === 'USD' && !typingRate && knownRate !== null && (
+          <p className="num -mt-2 flex flex-wrap items-center gap-x-2 px-1 text-caption text-ink-2">
+            <span>
+              1 USD = ${knownRate.toFixed(2)} ·{' '}
+              {rateIsToday ? 'tipo de cambio de hoy' : 'tipo de cambio guardado'}
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                setRateText(knownRate.toFixed(2))
+                setCustomRate(true)
+              }}
+              className="-my-3 min-h-11 px-1 font-semibold text-accent"
+            >
+              Cambiar
+            </button>
+          </p>
+        )}
+        {typingRate && (
           <Field
             label="Tipo de cambio (pesos por 1 dólar)"
-            hint="No pudimos obtener el tipo de cambio. Escríbelo para continuar."
+            hint={
+              askRate
+                ? 'No pudimos obtener el tipo de cambio. Escríbelo para continuar.'
+                : 'Solo se usa en este movimiento.'
+            }
           >
             <input
               inputMode="decimal"
               placeholder="18.50"
+              autoFocus={customRate}
               value={rateText}
               onChange={(e) => setRateText(e.target.value)}
+              aria-invalid={rateText.trim() !== '' && !typedOk}
               className={cx(inputClass, 'num')}
             />
+            {rateText.trim() !== '' && !typedOk && (
+              <span role="alert" className="mt-1.5 block px-1 text-caption text-danger">
+                Escribe un número entre {MIN_RATE} y {MAX_RATE}, por ejemplo 18.50.
+              </span>
+            )}
+            {customRate && knownRate !== null && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault()
+                  setCustomRate(false)
+                }}
+                className="mt-1 min-h-11 px-1 text-caption font-semibold text-accent"
+              >
+                Usar el automático (${knownRate.toFixed(2)})
+              </button>
+            )}
           </Field>
         )}
 

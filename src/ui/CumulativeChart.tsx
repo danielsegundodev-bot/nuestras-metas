@@ -2,7 +2,7 @@ import { useReducedMotion } from 'framer-motion'
 import { useMemo, useState } from 'react'
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { formatMonthShort, formatMonthYear, parseLocal } from '../lib/dates'
-import { formatMoney, formatMoneyCompact } from '../lib/money'
+import { formatMoneyAuto, formatMoneyCompact } from '../lib/money'
 import { orderProfiles, personColor } from '../lib/people'
 import { monthlyCumulativeSeries } from '../lib/stats'
 import type { Contribution, Goal, Profile } from '../lib/types'
@@ -91,7 +91,7 @@ export function CumulativeChart({
     ? people
         .map(
           (p) =>
-            `${p.display_name}: ${formatMoney(Number(last[p.user_id]) || 0, cur, { decimals: 0 })}`,
+            `${p.display_name}: ${formatMoneyAuto(Number(last[p.user_id]) || 0, cur)}`,
         )
         .join(', ')
     : ''
@@ -159,7 +159,7 @@ export function CumulativeChart({
                 <YAxis
                   axisLine={false}
                   tickLine={false}
-                  width={52}
+                  width={60}
                   tickCount={4}
                   tick={{ fill: 'var(--ink-2)', fontSize: 12 }}
                   tickFormatter={(v: number) => formatMoneyCompact(v, cur)}
@@ -169,7 +169,7 @@ export function CumulativeChart({
                   content={
                     <ChartTooltip
                       profiles={people}
-                      fmt={(v) => formatMoney(v, cur, { decimals: 0 })}
+                      fmt={(v) => formatMoneyAuto(v, cur)}
                     />
                   }
                 />
